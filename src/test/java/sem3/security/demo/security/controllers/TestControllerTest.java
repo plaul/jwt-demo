@@ -1,7 +1,5 @@
 package sem3.security.demo.security.controllers;
 
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +101,6 @@ class TestControllerTest {
                 HttpMethod.GET,
                 entity,
                 String.class);
-        System.out.println("----------->"+response.getBody());
         assertEquals(200,response.getStatusCode().value());
         assertEquals("Public Content.",response.getBody());
     }
@@ -123,7 +120,6 @@ class TestControllerTest {
                 entity,
                 String.class);
         assertEquals(200,response.getStatusCode().value());
-        System.out.println("------> "+response.getBody());
 
         //Verify that we can log in as the new user
         ResponseEntity<JwtResponse>  res = login("xxxxx","xxxxxx");
@@ -242,7 +238,7 @@ class TestControllerTest {
 
     private String makeUrl(String path){
         String pathBuilded = "http://localhost:"+port+path;
-        System.out.println(pathBuilded);
+        //System.out.println(pathBuilded);
         return pathBuilded;
     }
 }
