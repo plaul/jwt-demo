@@ -24,15 +24,11 @@ import sem3.security.demo.security.repositories.RoleRepository;
 import sem3.security.demo.security.repositories.UserRepository;
 import static org.junit.jupiter.api.Assertions.*;
 
-
-
-
 @ActiveProfiles("test")  //Will prevent the DateSetup CommandlineRunner from running
 @AutoConfigureTestDatabase
 @EnableAutoConfiguration
 @SpringBootTest(
         classes = {sem3.security.demo.DemoApplication.class},
-        //classes = {sem3.security.demo.security.controllers.TestControllerTest.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TestControllerTest {
 
@@ -53,23 +49,6 @@ class TestControllerTest {
 
     @Autowired
     TestRestTemplate restTemplate;
-
-    //This is how we hold on to the token after login, similar to that a client must store the token somewhere
-    private static String securityToken;
-
-    //Utility method to login and store the returned securityToken
-    private   ResponseEntity<JwtResponse>  login(String userName, String password) {
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername(userName);
-        loginRequest.setPassword(password);
-
-        HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest,headers);
-        ResponseEntity<JwtResponse> response = restTemplate.exchange(makeUrl("/api/auth/signin"),
-                HttpMethod.POST,
-                entity,
-                JwtResponse.class);
-        return response;
-    }
 
     @BeforeEach
     public  void addRoles(){
@@ -93,6 +72,22 @@ class TestControllerTest {
         userRepository.save(admin);
         userRepository.save(user_admin);
     }
+
+
+    //Utility method to login and store the return the received response, which includes the securityToken
+    private   ResponseEntity<JwtResponse>  login(String userName, String password) {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setUsername(userName);
+        loginRequest.setPassword(password);
+
+        HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest,headers);
+        ResponseEntity<JwtResponse> response = restTemplate.exchange(makeUrl("/api/auth/signin"),
+                HttpMethod.POST,
+                entity,
+                JwtResponse.class);
+        return response;
+    }
+
 
     @Test
     void allAccessTest() {
@@ -150,7 +145,7 @@ class TestControllerTest {
 
     @Test
     void invalidLoginTest(){
-        //Important --> to get this test to work, the client has been replaced (in POM) with httpComponent
+        //Important --> to get this test to work, the client had been replaced (in POM) with httpComponent
         //Se this post for details --> https://stackoverflow.com/questions/27341604/exception-when-using-testresttemplate
         ResponseEntity<JwtResponse>  res = login("i-dont-exist","test");
         assertEquals(401,res.getStatusCode().value());
@@ -215,7 +210,7 @@ class TestControllerTest {
     void endPointWithMultipleRolesTest() {
         String securityToken = "Bearer "+ login("admin","test").getBody().getAccessToken();
         ResponseEntity<String> response = getStringResponseEntity(securityToken);
-        assertEquals(200,response.getStatusCode().value(),"User, 'employee' CANNOT access /api/test/user");
+        assertEquals(200,response.getStatusCode().value(),"User, 'employee' CAN access /api/test/user");
 
         securityToken = "Bearer "+ login("user","test").getBody().getAccessToken();
         response = getStringResponseEntity(securityToken);
@@ -223,7 +218,7 @@ class TestControllerTest {
 
         securityToken = "Bearer "+ login("employee","test").getBody().getAccessToken();
         response = getStringResponseEntity(securityToken);
-        assertEquals(403,response.getStatusCode().value(),"User, 'admin' CAN access /api/test/user");
+        assertEquals(403,response.getStatusCode().value(),"User, 'admin' CANNOT access /api/test/user");
     }
 
     private ResponseEntity<String> getStringResponseEntity(String securityToken) {
